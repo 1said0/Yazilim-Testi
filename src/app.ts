@@ -5,6 +5,8 @@ import swaggerDocument from './config/swagger.json';
 import userRoutes from './routes/user.routes';
 import productRoutes from './routes/product.routes';
 import categoryRoutes from './routes/category.routes';
+import orderRoutes from './routes/order.routes';
+import reviewRoutes from './routes/review.routes';
 
 const app: Application = express();
 
@@ -16,6 +18,8 @@ app.use(cors());
 app.use('/api/users', userRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/categories', categoryRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 // Health Check
 app.get('/', (req: Request, res: Response) => {
