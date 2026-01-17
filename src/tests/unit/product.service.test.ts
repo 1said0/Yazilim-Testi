@@ -1,29 +1,41 @@
 import { createProduct, getAllProducts, getProductById, updateProduct, deleteProduct } from '../../services/product.service';
 import { PrismaClient } from '@prisma/client';
 
-// Mock Prisma Client
-const prisma = new PrismaClient();
+// Define Mock Structure
 jest.mock('@prisma/client', () => {
-    const mPrisma = {
-        product: {
-            create: jest.fn(),
-            findMany: jest.fn(),
-            findUnique: jest.fn(),
-            update: jest.fn(),
-            delete: jest.fn(),
-        },
+    const originalModule = jest.requireActual('@prisma/client');
+
+    const productMethods = {
+        create: jest.fn(),
+        findMany: jest.fn(),
+        findUnique: jest.fn(),
+        update: jest.fn(),
+        delete: jest.fn(),
     };
-    return { PrismaClient: jest.fn(() => mPrisma) };
+
+    const mPrisma = {
+        product: productMethods
+    };
+
+    // Create the Mock Constructor
+    const MockConstructor = jest.fn(() => mPrisma);
+
+    // Attach the mock instance to the constructor so we can access it in tests
+    (MockConstructor as any).mockInstance = mPrisma;
+
+    return {
+        __esModule: true,
+        ...originalModule,
+        PrismaClient: MockConstructor,
+    };
 });
 
 describe('Product Service', () => {
     let prismaMock: any;
 
     beforeEach(() => {
-        prismaMock = new PrismaClient();
-    });
-
-    afterEach(() => {
+        // Retrieve the shared mock instance
+        prismaMock = (PrismaClient as any).mockInstance;
         jest.clearAllMocks();
     });
 
@@ -32,9 +44,10 @@ describe('Product Service', () => {
             const productInput = { name: 'Test Product', price: 100, stock: 10, description: 'Test Desc' };
             const createdProduct = { id: 1, ...productInput, createdAt: new Date(), updatedAt: new Date() };
 
-            // @ts-ignore
             prismaMock.product.create.mockResolvedValue(createdProduct);
 
+            // Need to cast input because price type mismatch might occur in tests if not careful, 
+            // but here we just pass simple object
             // @ts-ignore
             const result = await createProduct(productInput);
 
@@ -77,6 +90,7 @@ describe('Product Service', () => {
             const updatedProduct = { id: 1, name: 'Updated P1' };
             prismaMock.product.update.mockResolvedValue(updatedProduct);
 
+            // @ts-ignore
             const result = await updateProduct(1, updateData);
 
             expect(prismaMock.product.update).toHaveBeenCalledWith({ where: { id: 1 }, data: updateData });
