@@ -13,11 +13,12 @@ export const createOrder = async (req: Request, res: Response) => {
 
         const order = await orderService.createOrder(userId, items);
         res.status(201).json(order);
-    } catch (error: any) {
-        if (error.message.includes('Insufficient stock') || error.message.includes('not found')) {
-            res.status(400).json({ error: error.message });
+    } catch (error) {
+        const err = error as Error;
+        if (err.message.includes('Insufficient stock') || err.message.includes('not found')) {
+            res.status(400).json({ error: err.message });
         } else {
-            res.status(500).json({ error: error.message });
+            res.status(500).json({ error: err.message });
         }
     }
 };
@@ -26,8 +27,8 @@ export const getAllOrders = async (req: Request, res: Response) => {
     try {
         const orders = await orderService.getAllOrders();
         res.status(200).json(orders);
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
     }
 };
 
@@ -42,7 +43,7 @@ export const getOrderById = async (req: Request, res: Response) => {
         }
 
         res.status(200).json(order);
-    } catch (error: any) {
-        res.status(500).json({ error: error.message });
+    } catch (error) {
+        res.status(500).json({ error: (error as Error).message });
     }
 };
