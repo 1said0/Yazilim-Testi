@@ -2,8 +2,19 @@ import { PrismaClient, Product, Prisma } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-export const createProduct = async (data: Prisma.ProductCreateInput): Promise<Product> => {
-    return prisma.product.create({ data });
+interface ProductCreateDTO extends Omit<Prisma.ProductCreateInput, 'categories'> {
+    categoryId?: number;
+}
+
+export const createProduct = async (data: ProductCreateDTO): Promise<Product> => {
+    const { categoryId, ...rest } = data;
+    const prismaData: Prisma.ProductCreateInput = {
+        ...rest,
+        categories: categoryId ? {
+            connect: { id: categoryId }
+        } : undefined
+    };
+    return prisma.product.create({ data: prismaData });
 };
 
 export const getAllProducts = async (): Promise<Product[]> => {

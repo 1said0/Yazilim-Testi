@@ -14,7 +14,11 @@ export const createOrder = async (req: Request, res: Response) => {
         const order = await orderService.createOrder(userId, items);
         res.status(201).json(order);
     } catch (error: any) {
-        res.status(500).json({ error: error.message });
+        if (error.message.includes('Insufficient stock') || error.message.includes('not found')) {
+            res.status(400).json({ error: error.message });
+        } else {
+            res.status(500).json({ error: error.message });
+        }
     }
 };
 
