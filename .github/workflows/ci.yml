@@ -1,0 +1,61 @@
+name: CI - Test Suite
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+          POSTGRES_DB: yazilim_test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js 20.x
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Generate Prisma Client
+      run: npx prisma generate
+
+    - name: Run Migrations
+      run: npx prisma migrate deploy
+      env:
+        DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/yazilim_test_db?schema=public"
+
+    - name: Run Unit Tests
+      run: npm run test:unit
+      env:
+        DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/yazilim_test_db?schema=public"
+
+    - name: Run Integration Tests
+      run: npm run test:int
+      env:
+        DATABASE_URL: "postgresql://test_user:test_password@localhost:5432/yazilim_test_db?schema=public"
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      env:
+        CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}

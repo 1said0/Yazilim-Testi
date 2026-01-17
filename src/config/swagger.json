@@ -325,6 +325,38 @@
                     }
                 }
             }
+        },
+        "/categories": {
+            "get": {
+                "summary": "Get all categories",
+                "responses": {
+                    "200": {
+                        "description": "List of categories"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a category",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Category created"
+                    }
+                }
+            }
         }
     }
 }
